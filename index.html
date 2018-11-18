@@ -3,7 +3,7 @@
 
 <head>
 	<meta charset="UTF-8">
-	<title>DApp-example: Bank</title>
+	<title>NCCU Bank</title>
 	<style>
 		.flex {
 			display: flex;
@@ -39,6 +39,8 @@
 			<h3 id="accountStatus">帳戶狀態</h3>
 			<h5 id="ethBalance">以太帳戶餘額 (wei): </h5>
 			<h5 id="bankBalance">銀行ETH餘額 (wei): </h5>
+			<h5 id="cdShow">定存金額: </h5>
+			<h5 id="cdPeriodShow">定存期數: </h5>
 
 			<hr>
 			<h3 id="updateCoin">更新餘額</h3>
@@ -59,6 +61,15 @@
 			<input id="transferEtherTo" type="text" placeholder="請輸入轉帳對象">
 			<input id="transferEtherValue" type="number" placeholder="請輸入轉帳額度 (ether)">
 			<button id="transferEtherButton">執行</button>
+
+			<hr>
+			<h3>購買定存</h3>
+			<input id="cd" type="number" placeholder="請輸入定存金額">
+			<input id="cdPeriod" type="number" placeholder="請輸入定存期數">
+			<button id="cdButton">執行</button><br><br>
+			<button id="cdDoneButton">合約期滿</button><br>
+			<input id="completeCd" type="number" placeholder="已完成期數">
+			<button id="advCdButton">提前解約</button>
 		</div>
 		<div class="item" style="width:500px;">
 			<h3>活動紀錄</h3>

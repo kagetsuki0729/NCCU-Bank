@@ -32,6 +32,13 @@ let web3 = new Web3('http://localhost:8545');
 
 let bank = new web3.eth.Contract(bankAbi);
 
+let cd=$('#cd'); 
+let cdPeriod=$('#cdPeriod'); 
+let cdButton=$('#cdButton');
+let cdDoneButton=$('#cdDoneButton');
+let advCdButton=$('#advCdButton');
+let completeCd=$('#completeCd');
+
 function log(...inputs) {
 	for (let input of inputs) {
 		if (typeof input === 'object') {
@@ -103,17 +110,22 @@ copyButton.on('click', function () {
 update.on('click', async function () {
 	if (bankAddress != "") {
 		let ethBalance = await web3.eth.getBalance(nowAccount)
-		let bankBalance = await bank.methods.getBankBalance().call({ from: nowAccount })
-
+		let bankBalance =await bank.methods.getBankBalance().call({ from: nowAccount })
+		let cdVal=await bank.methods.getCd().call({ from: nowAccount })
+		let cdPeriodVal=await bank.methods.getCdPeriod().call({ from: nowAccount })
 		log({
 			address: bankAddress,
 			ethBalance: ethBalance,
-			bankBalance: bankBalance
+			bankBalance: bankBalance,
+			cd: cdVal,
+			cdPeriod: cdPeriodVal
 		})
 		log('更新帳戶資料')
 
 		$('#ethBalance').text('以太帳戶餘額 (wei): ' + ethBalance)
 		$('#bankBalance').text('銀行ETH餘額 (wei): ' + bankBalance)
+		$('#cdShow').text('定存金額: '+cdVal)
+		$('#cdPeriodShow').text('定存期數: '+cdPeriodVal)
 	}
 	else {
 		let ethBalance = await web3.eth.getBalance(nowAccount)
@@ -353,3 +365,110 @@ async function unlockAccount() {
 			});
 	}
 }
+
+//購買定存
+cdButton.on('click', async function () {
+	
+	if (bankAddress == "") {
+		return;
+	}
+
+	// 解鎖
+	let unlock = await unlockAccount();
+	if (!unlock) {
+		return;
+	}
+
+	// 更新介面 
+	waitTransactionStatus();
+	
+	bank.methods.cd(parseInt(cdPeriod.val(), 10)).send({
+		from: nowAccount,
+		gas: 3400000,
+		value: web3.utils.toWei(cd.val(), 'ether')
+	})
+		.on('receipt', function (receipt) {
+			log(receipt.events.CdEvent.returnValues, '定存成功')
+
+			// 觸發更新帳戶資料
+			update.trigger('click')
+
+			// 更新介面 
+			doneTransactionStatus()
+		})
+		.on('error', function (error) {
+			log(error.toString())
+			// 更新介面 
+			doneTransactionStatus()
+		})
+})
+// 合約期滿
+cdDoneButton.on('click', async function () {
+	
+	if (bankAddress == "") {
+		return;
+	}
+
+	// 解鎖
+	let unlock = await unlockAccount();
+	if (!unlock) {
+		return;
+	}
+
+	// 更新介面 
+	waitTransactionStatus();
+	
+	bank.methods.cdDone().send({
+		from: nowAccount,
+		gas: 3400000
+	})
+		.on('receipt', function (receipt) {
+			log(receipt.events.CdDoneEvent.returnValues, '合約期滿成功')
+
+			// 觸發更新帳戶資料
+			update.trigger('click')
+
+			// 更新介面 
+			doneTransactionStatus()
+		})
+		.on('error', function (error) {
+			log(error.toString())
+			// 更新介面 
+			doneTransactionStatus()
+		})
+})
+//提前解約
+advCdButton.on('click', async function () {
+	
+	if (bankAddress == "") {
+		return;
+	}
+
+	// 解鎖
+	let unlock = await unlockAccount();
+	if (!unlock) {
+		return;
+	}
+
+	// 更新介面 
+	waitTransactionStatus();
+	
+	bank.methods.advCd(parseInt(completeCd.val(),10)).send({
+		from: nowAccount,
+		gas: 3400000
+	})
+		.on('receipt', function (receipt) {
+			log(receipt.events.AdvCdEvent.returnValues, '提前解約成功')
+
+			// 觸發更新帳戶資料
+			update.trigger('click')
+
+			// 更新介面 
+			doneTransactionStatus()
+		})
+		.on('error', function (error) {
+			log(error.toString())
+			// 更新介面 
+			doneTransactionStatus()
+		})
+})
